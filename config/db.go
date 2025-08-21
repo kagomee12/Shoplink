@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"shoplink/app/domain/dao"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -27,4 +28,25 @@ func ConnectDB() {
 	}
 
 	DB = db
+}
+
+func Migrate() {
+	err := DB.AutoMigrate(
+		&dao.User{},
+		&dao.Order{},
+		&dao.OrderItem{},
+		&dao.ProductReview{},
+		&dao.Cart{},
+		&dao.CartItem{},
+		&dao.Address{},
+		&dao.Payment{},
+		&dao.Product{},
+		&dao.ProductImage{},
+		&dao.Store{},
+		&dao.ProductImage{},
+		&dao.Category{},
+	)
+	if err != nil {
+		log.Fatal("Error migrating database. Error: ", err)
+	}
 }

@@ -15,6 +15,8 @@ func main() {
 	}
 
 	config.InitLog()
+	config.ConnectDB()
+	config.Migrate()
 
 	r := gin.Default()
 	r.Run()
