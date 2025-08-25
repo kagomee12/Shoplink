@@ -1,23 +1,21 @@
 package main
 
 import (
+	"shoplink/app/router"
 	"shoplink/config"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
+func init(){
+	godotenv.Load()
+	config.InitLog()
+}
+
 func main() {
 	
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
+	r := config.Init()
 
-	config.InitLog()
-	config.ConnectDB()
-	config.Migrate()
-
-	r := gin.Default()
-	r.Run()
+	app := router.Init(r)
+	app.Run(":" + "8080")
 }
