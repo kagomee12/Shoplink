@@ -10,8 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-func ConnectDB() {
+func ConnectDB() *gorm.DB {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
@@ -27,11 +26,17 @@ func ConnectDB() {
 		log.Fatal("Error connecting to database. Error: ", err)
 	}
 
-	DB = db
+	err = MigrateAll(db)
+
+	if err != nil {
+		log.Fatal("Error migrating database. Error: ", err)
+	}
+
+	return db
 }
 
-func Migrate() {
-	err := DB.AutoMigrate(
+func MigrateAll(db *gorm.DB) (error) {
+	err := db.AutoMigrate(
 		&dao.User{},
 		&dao.Order{},
 		&dao.OrderItem{},
@@ -48,5 +53,7 @@ func Migrate() {
 	)
 	if err != nil {
 		log.Fatal("Error migrating database. Error: ", err)
+		return err
 	}
+	return nil
 }
