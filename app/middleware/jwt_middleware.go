@@ -13,7 +13,7 @@ func JWTMiddleware(JWTService pkg.JWTService) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
-			c.JSON(401, gin.H{"error": "Authorization header is missing"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is missing"})
 			c.Abort()
 			return
 		}
@@ -27,7 +27,7 @@ func JWTMiddleware(JWTService pkg.JWTService) gin.HandlerFunc {
 
 		token, err := JWTService.ValidateToken(parts[1])
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}

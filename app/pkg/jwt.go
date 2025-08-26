@@ -19,7 +19,7 @@ func NewJWTIssuer() JWTIssuer {
 }
 
 type JWTService interface {
-	GenerateToken(userID uint, username string) (string, error)
+	GenerateToken(userID uint, username string) (string, string, error)
 	ValidateToken(token string) (*JWTClaims, error)
 }
 
@@ -41,12 +41,12 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (j *JWTServiceImpl) GenerateToken(userID uint, username string) (string, error) {
+func (j *JWTServiceImpl) GenerateToken(userID uint, username string) (string, string, error) {
 	claims := JWTClaims{
 		UserID:   userID,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    j.JWTIssuer,
 		},
@@ -56,10 +56,27 @@ func (j *JWTServiceImpl) GenerateToken(userID uint, username string) (string, er
 
 	tokenString, err := token.SignedString([]byte(j.JWTSecret))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return tokenString, nil
+	claimsRefresh := JWTClaims{
+		UserID:   userID,
+		Username: username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * 7 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    j.JWTIssuer,
+		},
+	}
+
+	tokenRefresh := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
+
+	tokenRefreshString, err := tokenRefresh.SignedString([]byte(j.JWTSecret))
+	if err != nil {
+		return "", "", err
+	}
+
+	return tokenString, tokenRefreshString, nil
 }
 
 func (j *JWTServiceImpl) ValidateToken(tokenString string) (*JWTClaims, error) {

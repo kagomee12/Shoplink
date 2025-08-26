@@ -15,6 +15,7 @@ import (
 type AuthService interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
+	RefreshToken(c *gin.Context)
 }
 
 type AuthServiceImpl struct {
@@ -36,7 +37,7 @@ func NewAuthService(repo repository.UserRepository, jwt pkg.JWTService) *AuthSer
 // it returns a 500 error. If the user is created successfully, it returns a 200
 // status with the created user data.
 func (s *AuthServiceImpl) Register(c *gin.Context) {
-	defer pkg.PanicHandler(c)
+	// defer pkg.PanicHandler(c)
 
 	log.Info("Registering new user")
 	var user dao.User
@@ -69,7 +70,7 @@ func (s *AuthServiceImpl) Register(c *gin.Context) {
 // it returns a 404 error. If the password is incorrect, it returns a 401 error.
 // If the login is successful, it logs the user in and returns a 200 status.
 func (s *AuthServiceImpl) Login(c *gin.Context) {
-	defer pkg.PanicHandler(c)
+	// defer pkg.PanicHandler(c)
 
 	log.Info("User login attempt")
 	var user dao.User
@@ -92,7 +93,7 @@ func (s *AuthServiceImpl) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := s.jwt.GenerateToken(existingUser.ID, existingUser.Name)
+	accessToken, refreshToken, err := s.jwt.GenerateToken(existingUser.ID, existingUser.Name)
 
 	if err != nil {
 		log.Error("Error generating token for user ID: ", existingUser.ID, " Error:", err)
@@ -100,5 +101,45 @@ func (s *AuthServiceImpl) Login(c *gin.Context) {
 	}
 
 	log.Info("User logged in successfully: ", existingUser.ID)
-	c.JSON(http.StatusOK, pkg.BuildResponse(constant.Success, token))
+	c.JSON(http.StatusOK, pkg.BuildResponse(constant.Success, gin.H{
+		"access_token": accessToken,
+		"refresh_token": refreshToken,
+	}))
+}
+
+func (s *AuthServiceImpl) RefreshToken(c *gin.Context) {
+	// defer pkg.PanicHandler(c)
+
+	log.Info("Refreshing token")
+
+	var requestBody struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindBodyWithJSON(&requestBody); err != nil {
+		log.Error("Invalid request body for token refresh: ", err)
+		pkg.PanicException(constant.InvalidRequest)
+		return
+	}
+
+	claims, err := s.jwt.ValidateToken(requestBody.RefreshToken)
+
+	if err != nil {
+		log.Error("Invalid refresh token: ", err)
+		pkg.PanicException(constant.Unauthorized)
+		return
+	}
+
+	accessToken, refreshToken, err := s.jwt.GenerateToken(claims.UserID, claims.Username)
+
+	if err != nil {
+		log.Error("Error generating token for user ID: ", claims.UserID, " Error:", err)
+		pkg.PanicException(constant.UnknownError)
+	}
+
+	log.Info("Token refreshed successfully for user ID: ", claims.UserID)
+	c.JSON(http.StatusOK, pkg.BuildResponse(constant.Success, gin.H{
+		"access_token": accessToken,
+		"refresh_token": refreshToken,
+	}))
 }

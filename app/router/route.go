@@ -1,7 +1,8 @@
 package router
 
 import (
-	"net/http"
+	"shoplink/app/middleware"
+	"shoplink/app/pkg"
 	"shoplink/config"
 
 	"github.com/gin-gonic/gin"
@@ -11,17 +12,7 @@ func Init(init *config.Initialization) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-
-	r.Use(func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-		_, err := init.Jwt.ValidateToken(tokenString)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			c.Abort()
-			return
-		}
-		c.Next()
-	})
+	r.Use(pkg.PanicHandler())
 
 	api := r.Group("/api")
 	{
@@ -30,6 +21,13 @@ func Init(init *config.Initialization) *gin.Engine {
 			auth.POST("/register", init.AuthController.Register)
 			auth.POST("/login", init.AuthController.Login)
 		}
+
+		token := api.Group("/token")
+		{
+			token.Use(middleware.JWTMiddleware(init.Jwt))
+			api.POST("/refresh-token", init.AuthController.RefreshToken)
+		}
+
 	}
 
 	return r

@@ -9,6 +9,7 @@ import (
 type AuthController interface {
 	Login(c *gin.Context)
 	Register(c *gin.Context)
+	RefreshToken(c *gin.Context)
 }
 
 type AuthControllerImpl struct {
@@ -33,4 +34,8 @@ func (a *AuthControllerImpl) Login(c *gin.Context) {
 // status with the created user data.
 func (a *AuthControllerImpl) Register(c *gin.Context) {
 	a.service.Register(c)
+}
+
+func (a *AuthControllerImpl) RefreshToken(c *gin.Context) {
+	a.service.RefreshToken(c)
 }
