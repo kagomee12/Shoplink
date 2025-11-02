@@ -8,6 +8,7 @@ package config
 
 import (
 	"github.com/google/wire"
+	"shoplink/app/config"
 	"shoplink/app/controller"
 	"shoplink/app/pkg"
 	"shoplink/app/repository"
@@ -17,14 +18,19 @@ import (
 // Injectors from injector.go:
 
 func Init() *Initialization {
+	configMinioConfig := config.NewMinioConfig()
+	minioRepositoryImpl := repository.MinioRepositoryInit(configMinioConfig)
 	gormDB := ConnectDB()
 	userRepositoryImpl := repository.UserRepositoryInit(gormDB)
+	productRepositoryImpl := repository.ProductRepositoryInit(gormDB, minioRepositoryImpl)
 	jwtSecret := pkg.NewJWTSecret()
 	jwtIssuer := pkg.NewJWTIssuer()
 	jwtServiceImpl := pkg.NewJWTService(jwtSecret, jwtIssuer)
 	authServiceImpl := service.NewAuthService(userRepositoryImpl, jwtServiceImpl)
+	productServiceImpl := service.NewProductService(productRepositoryImpl, minioRepositoryImpl)
 	authControllerImpl := controller.AuthControllerInit(authServiceImpl)
-	initialization := InitAll(userRepositoryImpl, authServiceImpl, authControllerImpl, jwtServiceImpl)
+	productControllerImpl := controller.ProductControllerInit(productServiceImpl)
+	initialization := InitAll(configMinioConfig, minioRepositoryImpl, userRepositoryImpl, productRepositoryImpl, authServiceImpl, productServiceImpl, authControllerImpl, productControllerImpl, jwtServiceImpl)
 	return initialization
 }
 
@@ -32,10 +38,20 @@ func Init() *Initialization {
 
 var db = wire.NewSet(ConnectDB)
 
+var minioConfig = wire.NewSet(config.NewMinioConfig)
+
 var userRepo = wire.NewSet(repository.UserRepositoryInit, wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)))
+
+var minioRepo = wire.NewSet(repository.MinioRepositoryInit, wire.Bind(new(repository.MinioRepository), new(*repository.MinioRepositoryImpl)))
+
+var productRepo = wire.NewSet(repository.ProductRepositoryInit, wire.Bind(new(repository.ProductRepository), new(*repository.ProductRepositoryImpl)))
 
 var authService = wire.NewSet(service.NewAuthService, wire.Bind(new(service.AuthService), new(*service.AuthServiceImpl)))
 
+var productService = wire.NewSet(service.NewProductService, wire.Bind(new(service.ProductService), new(*service.ProductServiceImpl)))
+
 var authController = wire.NewSet(controller.AuthControllerInit, wire.Bind(new(controller.AuthController), new(*controller.AuthControllerImpl)))
+
+var productController = wire.NewSet(controller.ProductControllerInit, wire.Bind(new(controller.ProductController), new(*controller.ProductControllerImpl)))
 
 var jwt = wire.NewSet(pkg.NewJWTService, wire.Bind(new(pkg.JWTService), new(*pkg.JWTServiceImpl)), pkg.NewJWTSecret, pkg.NewJWTIssuer)
