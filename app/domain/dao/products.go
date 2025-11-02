@@ -9,7 +9,7 @@ type Product struct {
 	Stock          int            `gorm:"not null" json:"stock"`
 	IsActive       bool           `gorm:"default:true" json:"is_active"`
 	CategoryID     uint           `gorm:"not null" json:"category_id"`
-	ProductImages  []ProductImage `gorm:"foreignKey:ProductID" json:"product_images"` // images associated with the product
+	ProductImages  []ProductImage `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE;" json:"product_images"` // images associated with the product
 	Category       Category
-	ProductReviews []ProductReview `gorm:"foreignKey:ProductID" json:"product_reviews"` // reviews for the product
+	ProductReviews []ProductReview `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE;" json:"product_reviews"` // reviews for the product
 }
