@@ -29,6 +29,11 @@ var minioRepo = wire.NewSet(
 	wire.Bind(new(repository.MinioRepository), new(*repository.MinioRepositoryImpl)),
 )
 
+var imageRepo = wire.NewSet(
+	repository.ImageRepositoryInit,
+	wire.Bind(new(repository.ImageRepository), new(*repository.ImageRepositoryImpl)),
+)
+
 var productRepo = wire.NewSet(
 	repository.ProductRepositoryInit,
 	wire.Bind(new(repository.ProductRepository), new(*repository.ProductRepositoryImpl)),
@@ -66,6 +71,7 @@ func Init() *Initialization {
 		InitAll,
 		db,
 		minioConfig,
+		imageRepo,
 		userRepo,
 		authService,
 		productService,

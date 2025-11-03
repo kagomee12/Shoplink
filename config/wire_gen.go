@@ -22,15 +22,16 @@ func Init() *Initialization {
 	minioRepositoryImpl := repository.MinioRepositoryInit(configMinioConfig)
 	gormDB := ConnectDB()
 	userRepositoryImpl := repository.UserRepositoryInit(gormDB)
+	imageRepositoryImpl := repository.ImageRepositoryInit(gormDB)
 	productRepositoryImpl := repository.ProductRepositoryInit(gormDB, minioRepositoryImpl)
 	jwtSecret := pkg.NewJWTSecret()
 	jwtIssuer := pkg.NewJWTIssuer()
 	jwtServiceImpl := pkg.NewJWTService(jwtSecret, jwtIssuer)
 	authServiceImpl := service.NewAuthService(userRepositoryImpl, jwtServiceImpl)
-	productServiceImpl := service.NewProductService(productRepositoryImpl, minioRepositoryImpl)
+	productServiceImpl := service.NewProductService(productRepositoryImpl, minioRepositoryImpl, imageRepositoryImpl)
 	authControllerImpl := controller.AuthControllerInit(authServiceImpl)
 	productControllerImpl := controller.ProductControllerInit(productServiceImpl)
-	initialization := InitAll(configMinioConfig, minioRepositoryImpl, userRepositoryImpl, productRepositoryImpl, authServiceImpl, productServiceImpl, authControllerImpl, productControllerImpl, jwtServiceImpl)
+	initialization := InitAll(configMinioConfig, minioRepositoryImpl, userRepositoryImpl, imageRepositoryImpl, productRepositoryImpl, authServiceImpl, productServiceImpl, authControllerImpl, productControllerImpl, jwtServiceImpl)
 	return initialization
 }
 
@@ -43,6 +44,8 @@ var minioConfig = wire.NewSet(config.NewMinioConfig)
 var userRepo = wire.NewSet(repository.UserRepositoryInit, wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)))
 
 var minioRepo = wire.NewSet(repository.MinioRepositoryInit, wire.Bind(new(repository.MinioRepository), new(*repository.MinioRepositoryImpl)))
+
+var imageRepo = wire.NewSet(repository.ImageRepositoryInit, wire.Bind(new(repository.ImageRepository), new(*repository.ImageRepositoryImpl)))
 
 var productRepo = wire.NewSet(repository.ProductRepositoryInit, wire.Bind(new(repository.ProductRepository), new(*repository.ProductRepositoryImpl)))
 
