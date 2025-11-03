@@ -27,6 +27,15 @@ func Init(init *config.Initialization) *gin.Engine {
 			token.Use(middleware.JWTMiddleware(init.Jwt))
 			api.POST("/refresh-token", init.AuthController.RefreshToken)
 		}
+		user := api.Group("/users")
+		{
+			token.Use(middleware.JWTMiddleware(init.Jwt))
+			user.GET("/", init.UserController.GetAllUsers)
+			user.GET("/:id", init.UserController.GetUserByID)
+			user.POST("/", init.UserController.CreateUser)
+			user.PUT("/", init.UserController.UpdateUser)
+			user.DELETE("/:id", init.UserController.DeleteUser)
+		}
 		product := api.Group("/products")
 		{
 			token.Use(middleware.JWTMiddleware(init.Jwt))
