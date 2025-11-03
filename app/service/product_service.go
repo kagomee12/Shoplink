@@ -11,20 +11,23 @@ import (
 type ProductService interface {
 	GetAllProducts() ([]dao.Product, error)
 	GetProductByID(id uint) (dao.Product, error)
+	GetProductByStoreID(storeID uint) ([]dao.Product, error)
 	CreateProduct(ctx context.Context, product dao.Product, files []*multipart.FileHeader, bucketName string) (dao.Product, error)
 	UpdateProduct(ctx context.Context, product dao.Product, files []*multipart.FileHeader, bucketName string, deletedImageIDs []uint) (dao.Product, error)
 	DeleteProduct(id uint) error
 }
 
 type ProductServiceImpl struct {
-	repo  repository.ProductRepository
-	minio repository.MinioRepository
+	repo         repository.ProductRepository
+	minio        repository.MinioRepository
+	productImage repository.ImageRepository
 }
 
-func NewProductService(repo repository.ProductRepository, minio repository.MinioRepository) *ProductServiceImpl {
+func NewProductService(repo repository.ProductRepository, minio repository.MinioRepository, productImage repository.ImageRepository) *ProductServiceImpl {
 	return &ProductServiceImpl{
-		repo:  repo,
-		minio: minio,
+		repo:         repo,
+		minio:        minio,
+		productImage: productImage,
 	}
 }
 
@@ -34,6 +37,10 @@ func (s *ProductServiceImpl) GetAllProducts() ([]dao.Product, error) {
 
 func (s *ProductServiceImpl) GetProductByID(id uint) (dao.Product, error) {
 	return s.repo.FindProductByID(id)
+}
+
+func (s *ProductServiceImpl) GetProductByStoreID(storeID uint) ([]dao.Product, error) {
+	return s.repo.FindProductByStoreID(storeID)
 }
 
 func (s *ProductServiceImpl) CreateProduct(ctx context.Context, product dao.Product, files []*multipart.FileHeader, bucketName string) (dao.Product, error) {
@@ -101,11 +108,9 @@ func (s *ProductServiceImpl) UpdateProduct(ctx context.Context, product dao.Prod
 	if len(deletedImageIDs) > 0 {
 		for _, imageID := range deletedImageIDs {
 			var image dao.ProductImage
-			for _, img := range product.ProductImages {
-				if img.ID == imageID {
-					image = img
-					break
-				}
+			image, err := s.productImage.FindImageByID(imageID)
+			if err != nil {
+				return dao.Product{}, err
 			}
 			if image.ID != 0 {
 				objectName := path.Base(image.ImageURL)
@@ -113,6 +118,10 @@ func (s *ProductServiceImpl) UpdateProduct(ctx context.Context, product dao.Prod
 				if err != nil {
 					return dao.Product{}, err
 				}
+			}
+			err = s.productImage.DeleteImage(image.ID)
+			if err != nil {
+				return dao.Product{}, err
 			}
 		}
 	}

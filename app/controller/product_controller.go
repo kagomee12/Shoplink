@@ -13,6 +13,7 @@ import (
 type ProductController interface {
 	GetAllProducts(C *gin.Context)
 	GetProductByID(C *gin.Context)
+	GetProductByStoreID(C *gin.Context)
 	CreateProduct(C *gin.Context)
 	UpdateProduct(C *gin.Context)
 	DeleteProduct(C *gin.Context)
@@ -48,6 +49,20 @@ func (p *ProductControllerImpl) GetProductByID(c *gin.Context) {
 		pkg.PanicException_(constant.UnknownError.GetResponseStatus(), err.Error())
 	}
 	c.JSON(200, pkg.BuildResponse(constant.Success, product))
+}
+
+func (p *ProductControllerImpl) GetProductByStoreID(c *gin.Context) {
+	storeid := c.Param("store_id")
+	storeID, err := strconv.ParseUint(storeid, 10, 64)
+	if err != nil {
+		pkg.PanicException_(constant.InvalidRequest.GetResponseStatus(), "Invalid store ID")
+	}
+
+	products, err := p.service.GetProductByStoreID(uint(storeID))
+	if err != nil {
+		pkg.PanicException_(constant.UnknownError.GetResponseStatus(), err.Error())
+	}
+	c.JSON(200, pkg.BuildResponse(constant.Success, products))
 }
 
 func (p *ProductControllerImpl) CreateProduct(c *gin.Context) {

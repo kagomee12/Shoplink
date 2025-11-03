@@ -9,6 +9,7 @@ import (
 type ProductRepository interface {
 	FindAllProducts() ([]dao.Product, error)
 	FindProductByID(id uint) (dao.Product, error)
+	FindProductByStoreID(storeID uint) ([]dao.Product, error)
 	CreateProduct(product dao.Product) (dao.Product, error)
 	UpdateProduct(product dao.Product) (dao.Product, error)
 	DeleteProduct(id uint) error
@@ -40,6 +41,14 @@ func (r *ProductRepositoryImpl) FindProductByID(id uint) (dao.Product, error) {
 		return dao.Product{}, err
 	}
 	return product, nil
+}
+
+func (r *ProductRepositoryImpl) FindProductByStoreID(storeID uint) ([]dao.Product, error) {
+	var products []dao.Product
+	if err := r.db.Preload("ProductImages").Where("store_id = ?", storeID).Find(&products).Error; err != nil {
+		return nil, err
+	}
+	return products, nil
 }
 
 func (r *ProductRepositoryImpl) CreateProduct(product dao.Product) (dao.Product, error) {
