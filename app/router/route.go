@@ -32,6 +32,7 @@ func Init(init *config.Initialization) *gin.Engine {
 			token.Use(middleware.JWTMiddleware(init.Jwt))
 			product.GET("/", init.ProductController.GetAllProducts)
 			product.GET("/:id", init.ProductController.GetProductByID)
+			product.GET("/store/:store_id", init.ProductController.GetProductByStoreID)
 			product.POST("/", init.ProductController.CreateProduct)
 			product.PUT("/", init.ProductController.UpdateProduct)
 			product.DELETE("/:id", init.ProductController.DeleteProduct)
