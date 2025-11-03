@@ -1,6 +1,7 @@
 package config
 
 import (
+	"shoplink/app/config"
 	"shoplink/app/controller"
 	"shoplink/app/pkg"
 	"shoplink/app/repository"
@@ -8,22 +9,40 @@ import (
 )
 
 type Initialization struct {
-	userRepo       repository.UserRepository
-	AuthService    service.AuthService
-	AuthController controller.AuthController
-	Jwt            pkg.JWTService
+	minioConfig       config.MinioConfig
+	userRepo          repository.UserRepository
+	MinioRepo         repository.MinioRepository
+	ImageRepo         repository.ImageRepository
+	ProductRepo       repository.ProductRepository
+	AuthService       service.AuthService
+	productService    service.ProductService
+	AuthController    controller.AuthController
+	ProductController controller.ProductController
+	Jwt               pkg.JWTService
 }
 
 func InitAll(
+	minioConfig *config.MinioConfig,
+	minioRepo repository.MinioRepository,
 	userRepo repository.UserRepository,
+	imageRepo repository.ImageRepository,
+	ProductRepo repository.ProductRepository,
 	authService service.AuthService,
+	productService service.ProductService,
 	authController controller.AuthController,
+	productController controller.ProductController,
 	jwt pkg.JWTService,
-	) *Initialization {
+) *Initialization {
 	return &Initialization{
-		userRepo:       userRepo,
-		AuthService:    authService,
-		AuthController: authController,
-		Jwt:            jwt,
+		minioConfig:       *minioConfig,
+		MinioRepo:         minioRepo,
+		userRepo:          userRepo,
+		ImageRepo:         imageRepo,
+		ProductRepo:       ProductRepo,
+		AuthService:       authService,
+		productService:    productService,
+		AuthController:    authController,
+		ProductController: productController,
+		Jwt:               jwt,
 	}
 }

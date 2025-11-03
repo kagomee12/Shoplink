@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 	"net/url"
+	"shoplink/app/config"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -11,7 +12,7 @@ import (
 )
 
 type MinioRepository interface {
-	UploadFile(ctx context.Context, bucketName, objectName string, fileBytes []byte, contentType string) (string, error)
+	UploadFile(ctx context.Context, bucketName, objectName string, file multipart.File, fileSize int64, contentType string) (string, error)
 	GetFileURL(ctx context.Context, bucketName, objectName string) (string, error)
 	DeleteFile(ctx context.Context, bucketName, objectName string) error
 }
@@ -20,18 +21,18 @@ type MinioRepositoryImpl struct {
 	client *minio.Client
 }
 
-func MinioRepositoryInit(endpoint, accessKeyID, secretAccessKey string, useSSL bool) (*MinioRepositoryImpl, error) {
-	minioClient, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-		Secure: useSSL,
+func MinioRepositoryInit(cfg *config.MinioConfig) *MinioRepositoryImpl {
+	minioClient, err := minio.New(string(cfg.Endpoint), &minio.Options{
+		Creds:  credentials.NewStaticV4(string(cfg.AccessKeyID), string(cfg.SecretAccessKey), ""),
+		Secure: bool(cfg.UseSSL),
 	})
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	return &MinioRepositoryImpl{
 		client: minioClient,
-	}, nil
+	}
 }
 
 func (m *MinioRepositoryImpl) UploadFile(ctx context.Context, bucketName, objectName string, file multipart.File, fileSize int64, contentType string) (string, error) {
@@ -58,4 +59,12 @@ func (m *MinioRepositoryImpl) GetFileURL(ctx context.Context, bucketName, object
 		return "", err
 	}
 	return presignedURL.String(), nil
+}
+
+func (m *MinioRepositoryImpl) DeleteFile(ctx context.Context, bucketName, objectName string) error {
+	err := m.client.RemoveObject(ctx, bucketName, objectName, minio.RemoveObjectOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
 }
