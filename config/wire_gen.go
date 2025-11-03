@@ -28,10 +28,12 @@ func Init() *Initialization {
 	jwtIssuer := pkg.NewJWTIssuer()
 	jwtServiceImpl := pkg.NewJWTService(jwtSecret, jwtIssuer)
 	authServiceImpl := service.NewAuthService(userRepositoryImpl, jwtServiceImpl)
+	userServiceImpl := service.NewUserService(userRepositoryImpl)
 	productServiceImpl := service.NewProductService(productRepositoryImpl, minioRepositoryImpl, imageRepositoryImpl)
+	userControllerImpl := controller.UserControllerInit(userServiceImpl)
 	authControllerImpl := controller.AuthControllerInit(authServiceImpl)
 	productControllerImpl := controller.ProductControllerInit(productServiceImpl)
-	initialization := InitAll(configMinioConfig, minioRepositoryImpl, userRepositoryImpl, imageRepositoryImpl, productRepositoryImpl, authServiceImpl, productServiceImpl, authControllerImpl, productControllerImpl, jwtServiceImpl)
+	initialization := InitAll(configMinioConfig, minioRepositoryImpl, userRepositoryImpl, imageRepositoryImpl, productRepositoryImpl, authServiceImpl, userServiceImpl, productServiceImpl, userControllerImpl, authControllerImpl, productControllerImpl, jwtServiceImpl)
 	return initialization
 }
 
@@ -49,9 +51,13 @@ var imageRepo = wire.NewSet(repository.ImageRepositoryInit, wire.Bind(new(reposi
 
 var productRepo = wire.NewSet(repository.ProductRepositoryInit, wire.Bind(new(repository.ProductRepository), new(*repository.ProductRepositoryImpl)))
 
+var userService = wire.NewSet(service.NewUserService, wire.Bind(new(service.UserService), new(*service.UserServiceImpl)))
+
 var authService = wire.NewSet(service.NewAuthService, wire.Bind(new(service.AuthService), new(*service.AuthServiceImpl)))
 
 var productService = wire.NewSet(service.NewProductService, wire.Bind(new(service.ProductService), new(*service.ProductServiceImpl)))
+
+var userController = wire.NewSet(controller.UserControllerInit, wire.Bind(new(controller.UserController), new(*controller.UserControllerImpl)))
 
 var authController = wire.NewSet(controller.AuthControllerInit, wire.Bind(new(controller.AuthController), new(*controller.AuthControllerImpl)))
 

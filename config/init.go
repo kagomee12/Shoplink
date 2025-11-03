@@ -15,6 +15,8 @@ type Initialization struct {
 	ImageRepo         repository.ImageRepository
 	ProductRepo       repository.ProductRepository
 	AuthService       service.AuthService
+	UserService       service.UserService
+	UserController    controller.UserController
 	productService    service.ProductService
 	AuthController    controller.AuthController
 	ProductController controller.ProductController
@@ -28,7 +30,9 @@ func InitAll(
 	imageRepo repository.ImageRepository,
 	ProductRepo repository.ProductRepository,
 	authService service.AuthService,
+	userService service.UserService,
 	productService service.ProductService,
+	userController controller.UserController,
 	authController controller.AuthController,
 	productController controller.ProductController,
 	jwt pkg.JWTService,
@@ -40,7 +44,9 @@ func InitAll(
 		ImageRepo:         imageRepo,
 		ProductRepo:       ProductRepo,
 		AuthService:       authService,
+		UserService:       userService,
 		productService:    productService,
+		UserController:    userController,
 		AuthController:    authController,
 		ProductController: productController,
 		Jwt:               jwt,
