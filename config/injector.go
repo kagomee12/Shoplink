@@ -39,6 +39,11 @@ var productRepo = wire.NewSet(
 	wire.Bind(new(repository.ProductRepository), new(*repository.ProductRepositoryImpl)),
 )
 
+var storeRepo = wire.NewSet(
+	repository.StoreRepositoryInit,
+	wire.Bind(new(repository.StoreRepository), new(*repository.StoreRepositoryImpl)),
+)
+
 var userService = wire.NewSet(
 	service.NewUserService,
 	wire.Bind(new(service.UserService), new(*service.UserServiceImpl)),
@@ -47,6 +52,11 @@ var userService = wire.NewSet(
 var authService = wire.NewSet(
 	service.NewAuthService,
 	wire.Bind(new(service.AuthService), new(*service.AuthServiceImpl)),
+)
+
+var StoreService = wire.NewSet(
+	service.NewStoreService,
+	wire.Bind(new(service.StoreService), new(*service.StoreServiceImpl)),
 )
 
 var productService = wire.NewSet(
@@ -62,6 +72,11 @@ var userController = wire.NewSet(
 var authController = wire.NewSet(
 	controller.AuthControllerInit,
 	wire.Bind(new(controller.AuthController), new(*controller.AuthControllerImpl)),
+)
+
+var StoreController = wire.NewSet(
+	controller.StoreControllerInit,
+	wire.Bind(new(controller.StoreController), new(*controller.StoreControllerImpl)),
 )
 
 var productController = wire.NewSet(
@@ -83,11 +98,14 @@ func Init() *Initialization {
 		minioConfig,
 		imageRepo,
 		userRepo,
+		storeRepo,
 		authService,
+		StoreService,
 		productService,
 		userService,
 		userController,
 		authController,
+		StoreController,
 		minioRepo,
 		productRepo,
 		productController,
