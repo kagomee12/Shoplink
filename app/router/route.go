@@ -41,10 +41,20 @@ func Init(init *config.Initialization) *gin.Engine {
 			token.Use(middleware.JWTMiddleware(init.Jwt))
 			product.GET("/", init.ProductController.GetAllProducts)
 			product.GET("/:id", init.ProductController.GetProductByID)
-			product.GET("/store/:store_id", init.ProductController.GetProductByStoreID)
+			product.GET("/store/:storeId", init.ProductController.GetProductByStoreID)
 			product.POST("/", init.ProductController.CreateProduct)
 			product.PUT("/", init.ProductController.UpdateProduct)
 			product.DELETE("/:id", init.ProductController.DeleteProduct)
+		}
+
+		store := api.Group("/store")
+		{
+			token.Use(middleware.JWTMiddleware(init.Jwt))
+			store.GET("/", init.StoreController.GetAllStores)
+			store.GET("/:id", init.StoreController.GetStoreByID)
+			store.POST("/", init.StoreController.CreatedStore)
+			store.PUT("/", init.StoreController.UpdateStore)
+			store.DELETE("/:id", init.StoreController.DeleteStore)
 		}
 
 	}
