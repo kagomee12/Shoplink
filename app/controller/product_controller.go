@@ -52,7 +52,7 @@ func (p *ProductControllerImpl) GetProductByID(c *gin.Context) {
 }
 
 func (p *ProductControllerImpl) GetProductByStoreID(c *gin.Context) {
-	storeid := c.Param("store_id")
+	storeid := c.Param("storeId")
 	storeID, err := strconv.ParseUint(storeid, 10, 64)
 	if err != nil {
 		pkg.PanicException_(constant.InvalidRequest.GetResponseStatus(), "Invalid store ID")
