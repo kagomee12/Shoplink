@@ -23,17 +23,20 @@ func Init() *Initialization {
 	gormDB := ConnectDB()
 	userRepositoryImpl := repository.UserRepositoryInit(gormDB)
 	imageRepositoryImpl := repository.ImageRepositoryInit(gormDB)
+	storeRepositoryImpl := repository.StoreRepositoryInit(gormDB)
 	productRepositoryImpl := repository.ProductRepositoryInit(gormDB, minioRepositoryImpl)
 	jwtSecret := pkg.NewJWTSecret()
 	jwtIssuer := pkg.NewJWTIssuer()
 	jwtServiceImpl := pkg.NewJWTService(jwtSecret, jwtIssuer)
 	authServiceImpl := service.NewAuthService(userRepositoryImpl, jwtServiceImpl)
 	userServiceImpl := service.NewUserService(userRepositoryImpl)
+	storeServiceImpl := service.NewStoreService(storeRepositoryImpl)
 	productServiceImpl := service.NewProductService(productRepositoryImpl, minioRepositoryImpl, imageRepositoryImpl)
 	userControllerImpl := controller.UserControllerInit(userServiceImpl)
 	authControllerImpl := controller.AuthControllerInit(authServiceImpl)
+	storeControllerImpl := controller.StoreControllerInit(storeServiceImpl)
 	productControllerImpl := controller.ProductControllerInit(productServiceImpl)
-	initialization := InitAll(configMinioConfig, minioRepositoryImpl, userRepositoryImpl, imageRepositoryImpl, productRepositoryImpl, authServiceImpl, userServiceImpl, productServiceImpl, userControllerImpl, authControllerImpl, productControllerImpl, jwtServiceImpl)
+	initialization := InitAll(configMinioConfig, minioRepositoryImpl, userRepositoryImpl, imageRepositoryImpl, storeRepositoryImpl, productRepositoryImpl, authServiceImpl, userServiceImpl, storeServiceImpl, productServiceImpl, userControllerImpl, authControllerImpl, storeControllerImpl, productControllerImpl, jwtServiceImpl)
 	return initialization
 }
 
@@ -51,15 +54,21 @@ var imageRepo = wire.NewSet(repository.ImageRepositoryInit, wire.Bind(new(reposi
 
 var productRepo = wire.NewSet(repository.ProductRepositoryInit, wire.Bind(new(repository.ProductRepository), new(*repository.ProductRepositoryImpl)))
 
+var storeRepo = wire.NewSet(repository.StoreRepositoryInit, wire.Bind(new(repository.StoreRepository), new(*repository.StoreRepositoryImpl)))
+
 var userService = wire.NewSet(service.NewUserService, wire.Bind(new(service.UserService), new(*service.UserServiceImpl)))
 
 var authService = wire.NewSet(service.NewAuthService, wire.Bind(new(service.AuthService), new(*service.AuthServiceImpl)))
+
+var StoreService = wire.NewSet(service.NewStoreService, wire.Bind(new(service.StoreService), new(*service.StoreServiceImpl)))
 
 var productService = wire.NewSet(service.NewProductService, wire.Bind(new(service.ProductService), new(*service.ProductServiceImpl)))
 
 var userController = wire.NewSet(controller.UserControllerInit, wire.Bind(new(controller.UserController), new(*controller.UserControllerImpl)))
 
 var authController = wire.NewSet(controller.AuthControllerInit, wire.Bind(new(controller.AuthController), new(*controller.AuthControllerImpl)))
+
+var StoreController = wire.NewSet(controller.StoreControllerInit, wire.Bind(new(controller.StoreController), new(*controller.StoreControllerImpl)))
 
 var productController = wire.NewSet(controller.ProductControllerInit, wire.Bind(new(controller.ProductController), new(*controller.ProductControllerImpl)))
 
